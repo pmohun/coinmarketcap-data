@@ -28,19 +28,18 @@ end_date = str(date.today()).replace("-", "")
 base_url = "https://coinmarketcap.com/currencies/{0}/historical-data/?start=20130428&end=" + end_date ; 
 
 def get_data(coin):
-    print("Currency :", coin)
-    url = base_url.format(coin)
+    print("Currency :", coins[0]) # todo change to 'coin'
+    url = base_url.format(coins[0])
     html_response = requests.get(url).text.encode('utf-8')
     soup = BeautifulSoup(html_response, 'html.parser')
     table = soup.find_all('table')[0]
     elements = table.find_all("tr")
-    with open(".{0}_price.csv".format(currency_name.replace("-","_")),"w") as ofile:
+    with open(".{0}_price.csv".format(coin.replace("-","_")),"w") as ofile:
         writer = csv.writer(ofile)
         for element in elements:
                 writer.writerow( element.get_text().strip().split("\n") )
-                time.sleep(1)
-            
-        if __name__ == "__main__":
-            for coin in coins:
-                    get_data(coin)
-                    pass 
+        
+if __name__ == "__main__":
+    for coin in coins:
+            get_data(coin)
+            pass  
