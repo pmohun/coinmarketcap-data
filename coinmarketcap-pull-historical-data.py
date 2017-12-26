@@ -1,17 +1,16 @@
-import re
-import sys
-import csv
-import time
-import random
-import json
-import requests
+#! python3
+## coinmarketcap-pull-historical-data.py
+## Uses CoinMarketCap API to pull list of top 200 coins by marketcap, 
+## then parses html of each coins historical page to generate consolidated table of historical price data.
+
+import re, sys, csv, time, random, json, requests, os
 from datetime import date
 from lxml import html
 from bs4 import BeautifulSoup
-
+from tkinter import filedialog 
+import pandas as pd
 
 ## TODO
-## Output table into csv
 ## Combine CSV into single file for data exploration
 
 ## Iterate through top 200 coins and pull names into a list
@@ -23,26 +22,57 @@ coins = [];
 for dict in json_data: # generate list of coins 
     coins.append(dict['id'])
 
-print(coins)
-
 ## Use list to pull historical data for each coin 
 end_date = str(date.today()).replace("-", "")
 base_url = "https://coinmarketcap.com/currencies/{0}/historical-data/?start=20130428&end=" + end_date ; 
-
 def get_data(coin):
-    print("Currency :", coin) # todo change to 'coin'
+    print("Percentage complete:"+ percentage + " | " "Currency :", coin) 
     url = base_url.format(coin)
     html_response = requests.get(url).text.encode('utf-8')
     soup = BeautifulSoup(html_response, 'html.parser')
     table = soup.find_all('table')[0]
     elements = table.find_all("tr")
-    with open(".{0}_price.csv".format(coin.replace("-","_")),"w") as ofile:
-        writer = csv.writer(ofile)
+    with open("{0}_price.csv".format(coin.replace("-","_")),"w") as csvfile:
+        ## Output table into csv
+        writer = csv.writer(csvfile)
         for element in elements:
-                writer.writerow( element.get_text().strip().split("\n") )
-        
+            writer.writerow([coin] +  element.get_text().strip().split("\n"))
+
+# Generate new folder to store consolidated csv
+cwd = os.getcwd()
+if os.path.exists(cwd + '/' + 'CoinData_' + str(end_date)) == False: # Check to see if updated folder exists, otherwise generate new folder with today's date
+    cwd = os.makedirs(cwd + '/' + 'CoinData_' + str(end_date)); 
+    os.chdir(cwd)
+else:
+    os.chdir(cwd + '/' + 'CoinData_' + str(end_date))
+    cwd = os.getcwd()
+
+# generate csv files
+i = 0
 if __name__ == "__main__":
+    print("Writing coin data to file . . . ")
     for coin in coins:
-            print(coin)
+            percentage = str(i)
             get_data(coin)
             pass  
+ 
+# Iterate through all csv files in directory 
+cwd = os.getcwd()
+consolidated_coin_data = []
+for filename in os.listdir(cwd):
+    if filename.endswith('.csv'):
+        current_csv = open(filename)
+        csv_reader = csv.reader(current_csv)
+        # csv.write(consolidated_coin_data.csv)
+        for row in csv_reader:
+            if csv_reader.line_num == 1:
+                continue          
+            consolidated_coin_data.append(row)
+        current_csv.close()  
+
+for line in consolidated_coin_data:
+    with open('consolidated_coin_data.csv', "a") as consolidatedcsv:
+        wr = csv.writer(consolidatedcsv)
+        wr.writerow(line)   
+
+print("Complete! Don't forget to hodl.")
