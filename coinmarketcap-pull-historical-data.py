@@ -21,12 +21,13 @@ json_data = json.loads(data)
 coins = []; 
 for dict in json_data: # generate list of coins 
     coins.append(dict['id'])
+num_coins = len(coins)
 
 ## Use list to pull historical data for each coin 
 end_date = str(date.today()).replace("-", "")
 base_url = "https://coinmarketcap.com/currencies/{0}/historical-data/?start=20130428&end=" + end_date ; 
 def get_data(coin):
-    print("Percentage complete:"+ percentage + " | " "Currency :", coin) 
+    print("Percentage complete: " + percentage + "% | " "Currency :", coin) 
     url = base_url.format(coin)
     html_response = requests.get(url).text.encode('utf-8')
     soup = BeautifulSoup(html_response, 'html.parser')
@@ -50,10 +51,11 @@ else:
 # generate csv files
 i = 0
 if __name__ == "__main__":
-    print("Writing coin data to file . . . ")
+    print("Pulling data for " + str(num_coins) + " coins . . . ")
     for coin in coins:
-            percentage = str(i)
+            percentage = str(round((i/num_coins)*100, 2)) 
             get_data(coin)
+            i += 1
             pass  
  
 # Iterate through all csv files in directory 
