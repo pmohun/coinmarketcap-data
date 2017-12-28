@@ -40,7 +40,7 @@ def get_data(coin):
             writer.writerow([coin] +  element.get_text().strip().split("\n"))
 
 # Generate new folder to store consolidated csv
-cwd = os.getcwd()
+cwd = str(os.getcwd())
 if os.path.exists(cwd + '/' + 'CoinData_' + str(end_date)) == False: # Check to see if updated folder exists, otherwise generate new folder with today's date
     cwd = os.makedirs(cwd + '/' + 'CoinData_' + str(end_date)); 
     os.chdir(cwd)
@@ -50,13 +50,13 @@ else:
 
 # generate csv files
 i = 0
-if __name__ == "__main__":
+''' if __name__ == "__main__":
     print("Pulling data for " + str(num_coins) + " coins . . . ")
     for coin in coins:
             percentage = str(round((i/num_coins)*100, 2)) 
             get_data(coin)
             i += 1
-            pass  
+            pass   '''
  
 # Iterate through all csv files in directory 
 cwd = os.getcwd()
@@ -65,16 +65,21 @@ for filename in os.listdir(cwd):
     if filename.endswith('.csv'):
         current_csv = open(filename)
         csv_reader = csv.reader(current_csv)
-        # csv.write(consolidated_coin_data.csv)
         for row in csv_reader:
-            if csv_reader.line_num == 1:
+            if csv_reader.line_num == 1: # skip headers when copying coin data, these are added at a later time
                 continue          
             consolidated_coin_data.append(row)
         current_csv.close()  
 
+# initialize consolidated coin data csv file and write headers
+with open('consolidated_coin_data.csv', 'a') as outcsv:
+    writer = csv.writer(outcsv)
+    writer.writerow(["Currency", "Date", "Open", "High", "Low", "Close", "Volume", "Market Cap"])
+
+# transform list into csv file
 for line in consolidated_coin_data:
     with open('consolidated_coin_data.csv', "a") as consolidatedcsv:
         wr = csv.writer(consolidatedcsv)
-        wr.writerow(line)   
+        wr.writerow(line)
 
 print("Complete! Don't forget to hodl.")
